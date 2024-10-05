@@ -2,6 +2,7 @@ import express from 'express';
 import expressWs from 'express-ws';
 import cors from 'cors';
 import * as mongoose from "mongoose";
+import UserRouter from "./routes/UserRouter";
 
 const app = express();
 expressWs(app);
@@ -10,8 +11,9 @@ const port = 8000;
 
 app.use(cors());
 app.use(express.json())
-const router = express.Router();
+app.use('/users' , UserRouter)
 
+const router = express.Router();
 
 const run = async () => {
     try {
