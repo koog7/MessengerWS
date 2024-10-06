@@ -1,9 +1,24 @@
 import {AppBar, Button, IconButton, Toolbar, Typography } from '@mui/material';
-import { NavLink } from 'react-router-dom';
+import {NavLink, useNavigate} from 'react-router-dom';
+import {useDispatch, useSelector} from "react-redux";
+import {AppDispatch, RootState} from "../app/store.ts";
+import {logout} from "../containers/Thunk/AuthFetch.ts";
 
 const Navbar = () => {
 
-    const userData = true;
+    const userData = useSelector((state: RootState) => state.User.user)
+
+    const dispatch = useDispatch<AppDispatch>();
+    const navigate = useNavigate();
+
+    const logOut = async () => {
+        if(userData){
+            await dispatch(logout(userData.token))
+            navigate('/')
+            localStorage.removeItem("persist:exam:User");
+            location.reload()
+        }
+    }
 
     return (
         <div>
@@ -23,8 +38,8 @@ const Navbar = () => {
                     </Typography>
                     {userData? (
                         <div style={{display:'flex', alignItems:'center'}}>
-                            <p style={{fontSize:'18px', marginTop:'15px', marginRight:'10px'}}>Welcome, koog7!</p>
-                            <Button color="inherit">Log out</Button>
+                            <p style={{fontSize:'18px', marginTop:'15px', marginRight:'10px'}}>Welcome, {userData.username}!</p>
+                            <Button color="inherit" onClick={logOut}>Log out</Button>
                         </div>
                     ):(
                         <div>
