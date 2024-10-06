@@ -18,11 +18,15 @@ app.use('/users' , UserRouter)
 
 const router = express.Router();
 
-const userData: WebSocket[] = [];
+interface User {
+    ws: WebSocket;
+    username: string;
+}
+
+const userData: User[] = [];
 const fieldData: object[] = [];
 
 router.ws('/message', async (ws, req) => {
-    userData.push(ws)
 
     const lastMessages = await Messages.find().sort({ createdAt: -1 }).limit(30).populate('userId', 'username');
 
@@ -30,8 +34,25 @@ router.ws('/message', async (ws, req) => {
         ws.send(JSON.stringify(lastMessages));
     }
 
+    const onlineUsers = userData.map(user => user.username);
+    ws.send(JSON.stringify({ type: 'ONLINE_USERS', payload: onlineUsers }));
+
     ws.on('message' , async (message:string) => {
         const msg = JSON.parse(message);
+
+        if (msg.type === 'LOGIN') {
+            const user = await User.findOne({ token: msg.token });
+
+            if (!user) {
+                ws.send(JSON.stringify({ type: 'ERROR', payload: 'Wrong token!' }));
+                ws.close();
+                return;
+            }
+
+            userData.push({ ws, username: user.username });
+
+            ws.send(JSON.stringify({ type: 'SUCCESS', payload: 'Logged in successfully!' }));
+        }
 
         if (msg.type === 'MESSAGE') {
 
@@ -39,7 +60,6 @@ router.ws('/message', async (ws, req) => {
                 userId: msg.userId,
                 message: msg.message
             });
-
             await newMessage.save();
 
             const findUser = await User.findById(msg.userId);
@@ -55,16 +75,23 @@ router.ws('/message', async (ws, req) => {
 
             fieldData.push(responseMessage);
 
-            userData.forEach((clientWs) => {
-                clientWs.send(JSON.stringify(responseMessage));
-            })
+            userData.forEach((client) => {
+                client.ws.send(JSON.stringify(responseMessage));
+            });
         }
     })
 
     ws.on('close' , () => {
-        const index = userData.indexOf(ws)
-        userData.splice(index , 1)
-    })
+        const index = userData.findIndex((user) => user.ws === ws);
+        if (index !== -1) {
+            userData.splice(index, 1);
+
+            const onlineUsers = userData.map(user => user.username);
+            userData.forEach((client) => {
+                client.ws.send(JSON.stringify({ type: 'ONLINE_USERS', payload: onlineUsers }));
+            });
+        }
+    });
 })
 
 app.use(router);
