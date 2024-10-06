@@ -21,12 +21,14 @@ const router = express.Router();
 const userData: WebSocket[] = [];
 const fieldData: object[] = [];
 
-router.ws('/message', (ws, req) => {
+router.ws('/message', async (ws, req) => {
     userData.push(ws)
 
-    // fieldData.forEach((message) => {
-    //     ws.send(message);
-    // });
+    const lastMessages = await Messages.find().sort({ createdAt: -1 }).limit(30).populate('userId', 'username');
+
+    if(lastMessages){
+        ws.send(JSON.stringify(lastMessages));
+    }
 
     ws.on('message' , async (message:string) => {
         const msg = JSON.parse(message);
@@ -45,7 +47,7 @@ router.ws('/message', (ws, req) => {
             if (!findUser) {
                 throw new Error('User not found');
             }
-            console.log(message)
+
             const responseMessage = {
                 username: findUser.username,
                 message: msg.message
