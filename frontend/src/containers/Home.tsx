@@ -8,7 +8,7 @@ const Home = () => {
 
     const userData = useSelector((state: RootState) => state.User.user)
     const [users , setUsers] = useState<string[]>([]);
-    const [messages, setMessages] = useState<object>([]);
+    const [messages, setMessages] = useState<object[]>([]);
 
     const ws = useRef<WebSocket | null>(null);
 
@@ -16,9 +16,7 @@ const Home = () => {
         ws.current = new WebSocket('ws://localhost:8000/message');
 
         ws.current.onopen = () => {
-            console.log('WebSocket соединение установлено');
-            if(userData){
-                console.log('Отправка логина');
+            if(userData && ws.current.readyState === WebSocket.OPEN){
                 ws.current.send(JSON.stringify({
                     type: 'LOGIN',
                     token: userData.token
@@ -38,11 +36,13 @@ const Home = () => {
                 }
             }
         }
-        ws.current.onclose = () => {
 
-        }
-    } , [userData])
+    } , [])
 
+
+    useEffect(() => {
+        console.log(messages);
+    }, [messages]);
     // useEffect(() => {
     //     if (messages) {
     //         console.log(messages.lastMessages);
@@ -59,26 +59,15 @@ const Home = () => {
                 <fieldset style={{height: '450px'}}>
                     <legend>Chat room</legend>
                     <div>
-                        {messages && (
+                        {messages && messages.length > 0 && messages[0].lastMessages && (
                             <div>
-                                {messages.map((msg, index) => (
-                                    <p key={index}><strong>{msg.lastMessages.userId?.username}:</strong> {msg.message}</p>
+                                {messages[0].lastMessages.map((msg, index) => (
+                                    <p key={index}>
+                                        <strong>{msg.userId?.username}:</strong> {msg.message}
+                                    </p>
                                 ))}
                             </div>
                         )}
-
-                        {/*<div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>*/}
-                        {/*    <span>User1:</span>*/}
-                        {/*    <p>Test message</p>*/}
-                        {/*</div>*/}
-                        {/*<div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>*/}
-                        {/*    <span>User2:</span>*/}
-                        {/*    <p>Test message</p>*/}
-                        {/*</div>*/}
-                        {/*<div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>*/}
-                        {/*    <span>User3:</span>*/}
-                        {/*    <p>Test message</p>*/}
-                        {/*</div>*/}
                     </div>
                 </fieldset>
                 <div style={{margin: '5px 5px 5px 10px'}}>

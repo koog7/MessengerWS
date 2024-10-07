@@ -38,10 +38,10 @@ router.ws('/message', async (ws, req) => {
 
     ws.on('message' , async (message:string) => {
         const msg = JSON.parse(message);
-        console.log(msg)
+
         if (msg.type === 'LOGIN') {
             const user = await User.findOne({ token: msg.token });
-            console.log(user);
+
             if (!user) {
                 ws.send(JSON.stringify({ type: 'ERROR', payload: 'Wrong token!' }));
                 ws.close();
@@ -49,6 +49,7 @@ router.ws('/message', async (ws, req) => {
             }
 
             userData.push({ ws, username: user.username });
+            console.log('user был создан')
 
             ws.send(JSON.stringify({ type: 'SUCCESS', payload: 'Logged in successfully!' }));
 

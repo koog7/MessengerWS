@@ -25,6 +25,7 @@ const Login = () => {
                 setLocalError(true)
             }else{
                 navigate('/');
+                location.reload();
             }
 
         } catch (error) {
