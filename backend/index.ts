@@ -38,7 +38,7 @@ router.ws('/message', async (ws, req) => {
 
     ws.on('message' , async (message:string) => {
         const msg = JSON.parse(message);
-
+        console.log(msg)
         if (msg.type === 'LOGIN') {
             const user = await User.findOne({ token: msg.token });
 
@@ -49,7 +49,6 @@ router.ws('/message', async (ws, req) => {
             }
 
             userData.push({ ws, username: user.username });
-            console.log('user был создан')
 
             ws.send(JSON.stringify({ type: 'SUCCESS', payload: 'Logged in successfully!' }));
 
@@ -57,7 +56,6 @@ router.ws('/message', async (ws, req) => {
             userData.forEach(client => {
                 client.ws.send(JSON.stringify({ type: 'ONLINE_USERS', payload: onlineUsers }));
             });
-
         }
 
         if (msg.type === 'MESSAGE') {
@@ -66,6 +64,7 @@ router.ws('/message', async (ws, req) => {
                 userId: msg.userId,
                 message: msg.message
             });
+            console.log('n -',message)
             await newMessage.save();
 
             const findUser = await User.findById(msg.userId);
@@ -75,14 +74,15 @@ router.ws('/message', async (ws, req) => {
             }
 
             const responseMessage = {
+                type: 'MESSAGE',
                 username: findUser.username,
                 message: msg.message
             };
-
+            console.log('r -',responseMessage)
             fieldData.push(responseMessage);
 
             userData.forEach((client) => {
-                client.ws.send(JSON.stringify( { type: 'MESSAGE', payload: client }));
+                client.ws.send(JSON.stringify(responseMessage));
             });
         }
     })
@@ -93,7 +93,7 @@ router.ws('/message', async (ws, req) => {
             userData.splice(index, 1);
 
             const onlineUsers = userData.map(user => user.username);
-            console.log(onlineUsers)
+
             userData.forEach((client) => {
                 client.ws.send(JSON.stringify({ type: 'ONLINE_USERS', payload: onlineUsers }));
             });
