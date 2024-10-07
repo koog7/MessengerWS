@@ -29,13 +29,11 @@ const Registration = () => {
             }else{
                 navigate('/');
             }
-
         } catch (error) {
             console.log('Unexpected Error:', error);
         }
 
     };
-
     return (
         <div style={{marginLeft: '470px'}}>
             <h2>Sign Up</h2>

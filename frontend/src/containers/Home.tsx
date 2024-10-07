@@ -14,22 +14,22 @@ const Home = () => {
     const ws = useRef<WebSocket | null>(null);
 
     useEffect(() => {
-        console.log(userData);
-    }, [userData]);
-
-    useEffect(() => {
         ws.current = new WebSocket('ws://localhost:8000/message');
-
+        console.log('connected')
         ws.current.onopen = () => {
-            ws.current.send(JSON.stringify({
-                type: 'LOGIN',
-                token: userData.token
-            }));
+            console.log('open');
+            if(userData){
+                ws.current.send(JSON.stringify({
+                    type: 'LOGIN',
+                    token: userData.token
+                }));
+                console.log('sended')
+            }
         }
 
         ws.current.onmessage = (message) => {
             const decodedMessage = JSON.parse(message.data)
-            console.log(decodedMessage)
+
             if (decodedMessage.type === 'ONLINE_USERS') {
                 setUsers(decodedMessage.payload);
             }
@@ -37,18 +37,12 @@ const Home = () => {
             if(decodedMessage.type === 'MESSAGE'){
                 if(Array.isArray(decodedMessage.lastMessages)){
                     setMessages(decodedMessage.lastMessages);
-                }else{
+                }else if (decodedMessage.message && decodedMessage.username){
                     setMessages((prevMessages) => [...prevMessages, decodedMessage]);
                 }
             }
         }
-
-
     } , [])
-
-    useEffect(() => {
-
-    }, []);
 
     const sendNewMessage = async (e : React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -69,12 +63,12 @@ const Home = () => {
                 <UserSidebar userName={users} />
             </div>
             <div style={{width:'75%' }}>
-                <fieldset style={{height: '450px' , overflowY: 'auto'}}>
+                <fieldset style={{height: '450px' , overflowY: 'auto', display: 'flex', flexDirection: 'column-reverse'}}>
                     <legend>Chat room</legend>
                     <div>
                         {messages && messages.length > 0 && (
                             <div>
-                                {messages.reverse().map((msg, index) => (
+                                {messages.map((msg, index) => (
                                     <p key={index}>
                                         <strong>{msg.userId?.username ? msg.userId.username : msg.username}:</strong> {msg.message}
                                     </p>
