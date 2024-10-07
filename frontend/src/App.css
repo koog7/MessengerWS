@@ -6,8 +6,5 @@
 .users-online{
   text-decoration: none;
   color: white;
-  margin-bottom: 15px;
-}
-.users-online:hover{
-  text-decoration: underline;
+  margin: 0 0 10px 0;
 }

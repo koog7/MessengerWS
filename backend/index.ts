@@ -27,11 +27,10 @@ const userData: User[] = [];
 const fieldData: object[] = [];
 
 router.ws('/message', async (ws, req) => {
-
     const lastMessages = await Messages.find().sort({ createdAt: -1 }).limit(30).populate('userId', 'username');
 
     if(lastMessages){
-        ws.send(JSON.stringify(lastMessages));
+        ws.send(JSON.stringify({ type:'MESSAGE' , lastMessages}));
     }
 
     const onlineUsers = userData.map(user => user.username);
@@ -39,10 +38,10 @@ router.ws('/message', async (ws, req) => {
 
     ws.on('message' , async (message:string) => {
         const msg = JSON.parse(message);
-
+        console.log(msg)
         if (msg.type === 'LOGIN') {
             const user = await User.findOne({ token: msg.token });
-
+            console.log(user);
             if (!user) {
                 ws.send(JSON.stringify({ type: 'ERROR', payload: 'Wrong token!' }));
                 ws.close();
@@ -52,6 +51,12 @@ router.ws('/message', async (ws, req) => {
             userData.push({ ws, username: user.username });
 
             ws.send(JSON.stringify({ type: 'SUCCESS', payload: 'Logged in successfully!' }));
+
+            const onlineUsers = userData.map(user => user.username);
+            userData.forEach(client => {
+                client.ws.send(JSON.stringify({ type: 'ONLINE_USERS', payload: onlineUsers }));
+            });
+
         }
 
         if (msg.type === 'MESSAGE') {
@@ -76,7 +81,7 @@ router.ws('/message', async (ws, req) => {
             fieldData.push(responseMessage);
 
             userData.forEach((client) => {
-                client.ws.send(JSON.stringify(responseMessage));
+                client.ws.send(JSON.stringify( { type: 'MESSAGE', payload: client }));
             });
         }
     })
@@ -87,6 +92,7 @@ router.ws('/message', async (ws, req) => {
             userData.splice(index, 1);
 
             const onlineUsers = userData.map(user => user.username);
+            console.log(onlineUsers)
             userData.forEach((client) => {
                 client.ws.send(JSON.stringify({ type: 'ONLINE_USERS', payload: onlineUsers }));
             });

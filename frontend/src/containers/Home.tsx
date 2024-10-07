@@ -1,32 +1,84 @@
 import UserSidebar from "../components/UserSidebar.tsx";
-import {useParams} from "react-router-dom";
+import {useEffect, useRef, useState} from "react";
+import {useSelector} from "react-redux";
+import {RootState} from "../app/store.ts";
 
 const Home = () => {
 
-    const {id} = useParams();
+
+    const userData = useSelector((state: RootState) => state.User.user)
+    const [users , setUsers] = useState<string[]>([]);
+    const [messages, setMessages] = useState<object>([]);
+
+    const ws = useRef<WebSocket | null>(null);
+
+    useEffect(() => {
+        ws.current = new WebSocket('ws://localhost:8000/message');
+
+        ws.current.onopen = () => {
+            console.log('WebSocket соединение установлено');
+            if(userData){
+                console.log('Отправка логина');
+                ws.current.send(JSON.stringify({
+                    type: 'LOGIN',
+                    token: userData.token
+                }));
+            }
+        }
+
+        if(ws.current){
+            ws.current.onmessage = (message) => {
+                const decodedMessage = JSON.parse(message.data)
+                if (decodedMessage.type === 'ONLINE_USERS') {
+                    setUsers(decodedMessage.payload);
+                }
+
+                if(decodedMessage.type === 'MESSAGE'){
+                    setMessages((prevMessages) => [...prevMessages, decodedMessage]);
+                }
+            }
+        }
+        ws.current.onclose = () => {
+
+        }
+    } , [userData])
+
+    // useEffect(() => {
+    //     if (messages) {
+    //         console.log(messages.lastMessages);
+    //     }
+    // }, [messages]);
+
 
     return (
         <div style={{display: "flex"}}>
             <div style={{width:'25%'}}>
-                <UserSidebar />
+                <UserSidebar userName={users} />
             </div>
             <div style={{width:'75%'}}>
                 <fieldset style={{height: '450px'}}>
                     <legend>Chat room</legend>
-                    <p>Room id - {id}</p>
                     <div>
-                        <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
-                            <span>User1:</span>
-                            <p>Test message</p>
-                        </div>
-                        <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
-                            <span>User2:</span>
-                            <p>Test message</p>
-                        </div>
-                        <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
-                            <span>User3:</span>
-                            <p>Test message</p>
-                        </div>
+                        {messages && (
+                            <div>
+                                {messages.map((msg, index) => (
+                                    <p key={index}><strong>{msg.lastMessages.userId?.username}:</strong> {msg.message}</p>
+                                ))}
+                            </div>
+                        )}
+
+                        {/*<div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>*/}
+                        {/*    <span>User1:</span>*/}
+                        {/*    <p>Test message</p>*/}
+                        {/*</div>*/}
+                        {/*<div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>*/}
+                        {/*    <span>User2:</span>*/}
+                        {/*    <p>Test message</p>*/}
+                        {/*</div>*/}
+                        {/*<div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>*/}
+                        {/*    <span>User3:</span>*/}
+                        {/*    <p>Test message</p>*/}
+                        {/*</div>*/}
                     </div>
                 </fieldset>
                 <div style={{margin: '5px 5px 5px 10px'}}>

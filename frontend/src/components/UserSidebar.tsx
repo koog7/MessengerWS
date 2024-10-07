@@ -1,15 +1,19 @@
-import {NavLink} from "react-router-dom";
+import React from "react";
 
-const UserSidebar = () => {
+interface Props {
+    userName: string[];
+}
+
+const UserSidebar:React.FC<Props> = ({userName}) => {
     return (
         <div>
             <fieldset style={{minHeight:'500px'}}>
                 <legend style={{margin:'0 auto'}}>Online users</legend>
 
                 <div style={{display:"flex", flexDirection:"column"}}>
-                    <NavLink className={'users-online'} to={'/1'}>Bo Sinn</NavLink>
-                    <NavLink className={'users-online'} to={'/2'}>Bo Sinn</NavLink>
-                    <NavLink className={'users-online'} to={'/3'}>Bo Sinn</NavLink>
+                    {userName.map((user, index) => (
+                        <p key={index} className={'users-online'}>{user}</p>
+                    ))}
                 </div>
             </fieldset>
         </div>
