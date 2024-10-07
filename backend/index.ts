@@ -27,7 +27,7 @@ const userData: User[] = [];
 const fieldData: object[] = [];
 
 router.ws('/message', async (ws, req) => {
-    const lastMessages = await Messages.find().sort({ createdAt: -1 }).limit(30).populate('userId', 'username');
+    const lastMessages = await Messages.find().sort({ _id: -1 }).limit(30).populate('userId', 'username');
 
     if(lastMessages){
         ws.send(JSON.stringify({ type:'MESSAGE' , lastMessages}));
@@ -38,11 +38,12 @@ router.ws('/message', async (ws, req) => {
 
     ws.on('message' , async (message:string) => {
         const msg = JSON.parse(message);
-        console.log(msg)
+
         if (msg.type === 'LOGIN') {
             const user = await User.findOne({ token: msg.token });
 
             if (!user) {
+                console.log('Not created')
                 ws.send(JSON.stringify({ type: 'ERROR', payload: 'Wrong token!' }));
                 ws.close();
                 return;
@@ -64,7 +65,7 @@ router.ws('/message', async (ws, req) => {
                 userId: msg.userId,
                 message: msg.message
             });
-            console.log('n -',message)
+
             await newMessage.save();
 
             const findUser = await User.findById(msg.userId);
@@ -78,7 +79,7 @@ router.ws('/message', async (ws, req) => {
                 username: findUser.username,
                 message: msg.message
             };
-            console.log('r -',responseMessage)
+
             fieldData.push(responseMessage);
 
             userData.forEach((client) => {

@@ -14,19 +14,22 @@ const Home = () => {
     const ws = useRef<WebSocket | null>(null);
 
     useEffect(() => {
+        console.log(userData);
+    }, [userData]);
+
+    useEffect(() => {
         ws.current = new WebSocket('ws://localhost:8000/message');
 
         ws.current.onopen = () => {
-            if(userData && ws.current.readyState === WebSocket.OPEN){
-                ws.current.send(JSON.stringify({
-                    type: 'LOGIN',
-                    token: userData.token
-                }));
-            }
+            ws.current.send(JSON.stringify({
+                type: 'LOGIN',
+                token: userData.token
+            }));
         }
 
         ws.current.onmessage = (message) => {
             const decodedMessage = JSON.parse(message.data)
+            console.log(decodedMessage)
             if (decodedMessage.type === 'ONLINE_USERS') {
                 setUsers(decodedMessage.payload);
             }
@@ -42,6 +45,10 @@ const Home = () => {
 
 
     } , [])
+
+    useEffect(() => {
+
+    }, []);
 
     const sendNewMessage = async (e : React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -67,7 +74,7 @@ const Home = () => {
                     <div>
                         {messages && messages.length > 0 && (
                             <div>
-                                {messages.map((msg, index) => (
+                                {messages.reverse().map((msg, index) => (
                                     <p key={index}>
                                         <strong>{msg.userId?.username ? msg.userId.username : msg.username}:</strong> {msg.message}
                                     </p>

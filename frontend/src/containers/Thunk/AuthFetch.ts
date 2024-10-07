@@ -29,7 +29,6 @@ export const loginUser = createAsyncThunk<User , LoginData , { rejectValue: stri
         const response = await axiosAPI.post(`/users` , loginData);
         return response.data;
     }catch (error) {
-        // @ts-ignore
         return rejectWithValue(error.response?.data?.message);
     }
 });
@@ -39,13 +38,11 @@ export const authorizationUser = createAsyncThunk<User , LoginData , { rejectVal
         const response = await axiosAPI.post(`/users/sessions` , loginData);
         return response.data;
     }catch (error) {
-        // @ts-ignore
         console.error('Error details:', error.response);
-        // @ts-ignore
         return rejectWithValue(error.response?.data?.message || 'Username or password wrong');
     }
 });
-// @ts-ignore
+
 export const logout = createAsyncThunk<void, string, {state: RootState}>('users/logout',
     async (userToken: string) => {
         await axiosAPI.delete('/users/sessions', {headers: { 'Authorization': `Bearer ${userToken}` }});
