@@ -74,13 +74,17 @@ const Home = () => {
                 <fieldset style={{height: '450px' , overflowY: 'auto', display: 'flex', flexDirection: 'column-reverse'}}>
                     <legend>Chat room</legend>
                     <div>
-                        {messages && messages.length > 0 && (
+                        {messages && messages.length > 0 ? (
                             <div>
                                 {messages.map((msg, index) => (
                                     <p key={index}>
                                         <strong>{msg.userId?.username ? msg.userId.username : msg.username}:</strong> {msg.message}
                                     </p>
                                 ))}
+                            </div>
+                        ): (
+                            <div>
+                                <p>Сообщений пока нет.</p>
                             </div>
                         )}
                     </div>
