@@ -1,5 +1,5 @@
 import UserSidebar from "../components/UserSidebar.tsx";
-import {FormEvent, useEffect, useRef, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import {useSelector} from "react-redux";
 import {RootState} from "../app/store.ts";
 
@@ -15,15 +15,23 @@ const Home = () => {
 
     useEffect(() => {
         ws.current = new WebSocket('ws://localhost:8000/message');
-        console.log('connected')
+
+        const connectAgain = (callback, interval) => {
+            if (ws.current.readyState === WebSocket.OPEN) {
+                callback();
+            } else {
+                setTimeout(() => connectAgain(callback, interval), interval);
+            }
+        };
+
         ws.current.onopen = () => {
-            console.log('open');
             if(userData){
-                ws.current.send(JSON.stringify({
-                    type: 'LOGIN',
-                    token: userData.token
-                }));
-                console.log('sended')
+                connectAgain(() => {
+                    ws.current.send(JSON.stringify({
+                        type: 'LOGIN',
+                        token: userData.token
+                    }));
+                }, 100)
             }
         }
 
@@ -42,7 +50,7 @@ const Home = () => {
                 }
             }
         }
-    } , [])
+    } , [userData])
 
     const sendNewMessage = async (e : React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -78,10 +86,16 @@ const Home = () => {
                     </div>
                 </fieldset>
                 <div style={{margin: '5px 5px 5px 10px'}}>
-                    <form onSubmit={sendNewMessage}>
-                        <input style={{width: '80%', minHeight: '30px', marginTop: '5px'}} value={newMessage} onChange={(e) => setNewMessage(e.target.value)} placeholder={'Enter a message'}></input>
-                        <button style={{marginLeft: '20px', padding: '7px 30px', width: '110px'}}>Send</button>
-                    </form>
+                    {userData ? (
+                        <form onSubmit={sendNewMessage}>
+                            <input style={{width: '80%', minHeight: '30px', marginTop: '5px'}} value={newMessage}
+                                   onChange={(e) => setNewMessage(e.target.value)}
+                                   placeholder={'Enter a message'}></input>
+                            <button style={{marginLeft: '20px', padding: '7px 30px', width: '110px'}}>Send</button>
+                        </form>
+                    ) : (
+                        <div style={{padding:'10px'}}>Что бы что то написать , зарегистрируйся</div>
+                    )}
                 </div>
             </div>
         </div>

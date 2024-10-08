@@ -11,7 +11,7 @@ const Registration = () => {
     const dispatch = useDispatch<AppDispatch>();
     const navigate = useNavigate();
     const [localError , setLocalError] = useState<boolean>(false)
-    // @ts-ignore
+
     const typeError = useSelector((state: RootState) => state.User.error)
 
     const [login, setLogin] = useState({

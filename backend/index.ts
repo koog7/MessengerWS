@@ -38,14 +38,19 @@ router.ws('/message', async (ws, req) => {
 
     ws.on('message' , async (message:string) => {
         const msg = JSON.parse(message);
-        console.log(msg)
+
         if (msg.type === 'LOGIN') {
             const user = await User.findOne({ token: msg.token });
 
             if (!user) {
-                console.log('Not created')
                 ws.send(JSON.stringify({ type: 'ERROR', payload: 'Wrong token!' }));
                 ws.close();
+                return;
+            }
+
+            const isConnected = userData.some((user) => user.username === user.username);
+
+            if(isConnected) {
                 return;
             }
 
@@ -54,20 +59,21 @@ router.ws('/message', async (ws, req) => {
             ws.send(JSON.stringify({ type: 'SUCCESS', payload: 'Logged in successfully!' }));
 
             const onlineUsers = userData.map(user => user.username);
+
             userData.forEach(client => {
                 client.ws.send(JSON.stringify({ type: 'ONLINE_USERS', payload: onlineUsers }));
             });
         }
 
         if (msg.type === 'MESSAGE') {
-            console.log('get in message')
+
             const newMessage = new Messages({
                 userId: msg.userId,
                 message: msg.message
             });
 
             await newMessage.save();
-            console.log('message saved')
+
             const findUser = await User.findById(msg.userId);
 
             if (!findUser) {
@@ -79,13 +85,13 @@ router.ws('/message', async (ws, req) => {
                 username: findUser.username,
                 message: msg.message
             };
-            console.log('message new created')
+
             fieldData.push(responseMessage);
 
             userData.forEach((client) => {
                 client.ws.send(JSON.stringify(responseMessage));
             });
-            console.log('sended')
+
         }
     })
 
