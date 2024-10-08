@@ -7,6 +7,7 @@ import bcrypt = require("bcrypt");
 const userRouter = express.Router();
 userRouter.use(express.json());
 
+// @ts-ignore
 userRouter.post("/", async (req, res, next) => {
     try {
         const existingUser = await User.findOne({ username: req.body.username });
@@ -35,6 +36,7 @@ userRouter.post("/", async (req, res, next) => {
 })
 
 
+// @ts-ignore
 userRouter.post('/sessions' , async (req , res , next) => {
     try{
         const user = await User.findOne({username: req.body.username})
@@ -61,6 +63,7 @@ userRouter.post('/sessions' , async (req , res , next) => {
     }
 })
 
+// @ts-ignore
 userRouter.delete('/sessions', async (req, res, next) => {
     try {
         const getToken = req.get('Authorization');
